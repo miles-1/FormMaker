@@ -2,11 +2,9 @@ from tkinter import Frame, Radiobutton, Text, Label, IntVar, Button
 from tkinter.ttk import Separator
 from tkinter import VERTICAL, END, WORD, HORIZONTAL
 from Order import Order
-from CONFIG import BOLD_SPLIT
-import os, sys
+from CONFIG import template_dir, BOLD_SPLIT
+import os
 
-main_path = os.path.dirname(sys.argv[0])
-template_dir = os.path.join(main_path, "templates/")
 
 class Window:
     def __init__(self, root):
