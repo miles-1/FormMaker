@@ -1,0 +1,19 @@
+Testing.
+
+~Testing testing testing!
+
+Testing testing, [date.Name=one] testing.~
+
+Testing. [repeat.Name=one]
+
+Name: [text.name=name]
+
+[check.name=options,content=list1.txt]
+
+[repeat.name=options]
+
+[radio.name=option2,content="list1 copy.txt"]
+
+~
+[drop.name=drop,content="list1 copy 2.txt"]
+~
