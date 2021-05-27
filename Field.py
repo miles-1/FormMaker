@@ -1,7 +1,8 @@
 from tkinter import Frame, Entry, Label, StringVar, IntVar, Checkbutton, Radiobutton, Text, Toplevel
-from tkinter import WORD, END
+from tkinter import WORD, END, NORMAL, DISABLED
 from datetime import datetime, timedelta
-from CONFIG import list_path, label_font, desc_font, NORM_FONT, BOLD_FONT
+from tkinter.constants import NO
+from CONFIG import list_path, label_font, desc_font, NORM_FONT, DATE_FORMAT
 import os
 
 
@@ -12,15 +13,15 @@ class TextHTML(Text):
     
     def setHTML(self, html):
         self.delete(1.0, END)
-        for frag in html.split("<pre style=\""):
+        for frag in html.split("<span style=\""):
             if frag:
-                for style, content in frag.split("\">", 1):
-                    font = tuple([pair.split(":")[1] for pair in style.split(";")])
-                    if font not in self.font_lst:
-                        self.tag_configure(len(self.font_lst), font=font)
-                        self.font_lst.append(font)
-                    self.insert(END, content.replace("</pre>","").replace("&nbsp", " ").replace("<br />", "\n") \
-                        .replace("&lt;", "<").replace("&gt;", ">"), self.font_lst.index(font))
+                style, content = frag.split("\">", 1)
+                font = tuple([pair.split(":")[1] for pair in style.split(";")])
+                if font not in self.font_lst:
+                    self.tag_configure(len(self.font_lst), font=font)
+                    self.font_lst.append(font)
+                self.insert(END, content.replace("</span>","").replace("&nbsp", " ").replace("<br />", "\n") \
+                    .replace("&lt;", "<").replace("&gt;", ">"), self.font_lst.index(font))
 
 class Font:
     def __init__(self, font=NORM_FONT[0], size=NORM_FONT[1], style=NORM_FONT[2]):
@@ -31,7 +32,7 @@ class Font:
     
     def getHTML(self, content):
         return f'<span style="font-family:{self.font[0]};font-size:{self.font[1]};font-weight:{self.font[2]}">' + \
-            content.replace(" ", "&nbsp").replace("\n", "<br />").replace("<", "&lt;").replace(">", "&gt;") + "</span>"
+            content.replace(" ", "&nbsp").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />") + "</span>"
 
 class Search: 
     '''A widget with features of Entry and Combobox that allows for a dropdown list 
@@ -158,7 +159,10 @@ class Field:
         return self.type
     
     def getText(self, blank=False, shift=0):
-        raise NotImplementedError("Extend getText")
+        raise NotImplementedError("Extend .getText()")
+    
+    def set(self):
+        raise NotImplementedError("Extend .set()")
     
     def __getattr__(self, name): 
         return lambda *args, **kwargs: getattr(Frame, name)(self.frame, *args, **kwargs)
@@ -188,19 +192,15 @@ class Datefield(Field):
         Label(self.frame, text="MM/DD/YY", font=desc_font).grid(row=0, column=2, padx=3)
         self.frame.pack(pady=5)
     
-    def getText(self, shift=0):
-        if len(string := self.values[0].get()) == 8:
+    def getText(self, shift=0, blank=False):
+        if len(string := self.values[0].get()) > 6 and string.count("/") == 2 and len(string.split("/")[2]) == 2:
             date_list = string.split("/")
             date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=shift)
-            return date.strftime("%a, %b %d")
+            return date.strftime(DATE_FORMAT)
+        elif blank:
+            return ""
         else:
             return self.code_string
-
-    def setText(self, text):
-        if len(text) == 8:
-            date_list = text.split("-")
-            date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=self.getShift())
-            self.values[0](date.strftime("%m-%I-%y"))
 
 class Checkfield(Field):
     def set(self):
@@ -216,12 +216,13 @@ class Checkfield(Field):
             self.values.append(IntVar())
             Checkbutton(self.frame, text=option, variable=self.values[num],
                         command=self.updateMethod).grid(row=num+1, column=0)
-
         self.frame.pack(pady=5)
 
-    def getText(self, shift=0):
+    def getText(self, shift=0, blank=False):
         if any(item.get() for item in self.values):
             return "\n".join([item for num, item in enumerate(self.text_values) if self.values[num].get()])
+        elif blank:
+            return ""
         else:
             return self.code_string
 
@@ -243,9 +244,11 @@ class Radiofield(Field):
 
         self.frame.pack(pady=5)
 
-    def getText(self, shift=0):
+    def getText(self, shift=0, blank=False):
         if (value := self.values[0].get()) > -1:
             return self.text_values[value]
+        elif blank:
+            return ""
         else:
             return self.code_string
 
@@ -261,13 +264,12 @@ class Dropfield(Field):
         self.text_values = lst_options.split("\n")
         self.values.append(StringVar())
         self.values[0].trace_add("write", lambda a, b, c: self.updateMethod())
-        Search(self.frame, values=self.text_values, 
-                    textvariable=self.values[0]).grid(row=0, column=1, padx=3)
+        Search(self.frame, lst=self.text_values).grid(row=0, column=1, padx=3)
 
         self.frame.pack(pady=5)
 
-    def getText(self, shift=0):
-        return string if (string := self.values[0].get()) else self.code_string
+    def getText(self, shift=0, blank=False):
+        return string if (string := self.values[0].get()) else ("" if blank else self.code_string)
 
 class Drop2field(Field):
     def set(self):
@@ -306,7 +308,7 @@ class Drop2field(Field):
         self.misc[2].config(text=self.text_values[self.values[0]][self.values[1]])
         self.updateMethod()
 
-    def getText(self, shift=0):
+    def getText(self, shift=0,  lank=False):
         return [item.get for item in self.value]
 
 class Repeatfield(Field):
@@ -316,19 +318,48 @@ class Repeatfield(Field):
     
     def set(self):
         if "shift" in self.params_dict:
-            Label(self.frame, text=self.getName().title() + ", shifted by " + self.params_dict["shift"] + ":", 
-                    font=label_font).grid(row=0, column=0, padx=3)
+            self.values(IntVar())
             self.values.append(StringVar())
-            self.values[0].trace_add("write", lambda a, b, c: self.updateMethod())
-            Entry(self.frame, width=5, 
-                    textvariable=self.values[0]).grid(row=0, column=1, padx=3)
-            Label(self.frame, text="MM/DD/YY", font=desc_font).grid(row=0, column=2, padx=3)
+            self.values[1].trace_add("write", lambda a, b, c: self.updateMethod())
+            
+            Checkbutton(self.frame, text="Enable", variable=self.values[0], 
+                        command=self.toggleActivity).grid(row=0, column=0, columnspan=3)
+            self.text_values.append(Label(self.frame, text=self.getName().title() + ", shifted by " + \
+                self.params_dict["shift"] + ":", font=label_font))
+            self.text_values[0].grid(row=1, column=0, padx=3)
+            self.text_values.append(Entry(self.frame, width=5, textvariable=self.values[0]))
+            self.text_values[1].grid(row=1, column=1, padx=3)
+            self.text_values.append(Label(self.frame, text="MM/DD/YY", font=desc_font))
+            self.text_values[2].grid(row=1, column=2, padx=3)
         else:
             return
         
         self.frame.pack(pady=5)
     
+    def toggleActivity(self):
+        if self.values[0].get():
+            self.text_values[0].config(fg="#000")
+            self.text_values[1].config(state=NORMAL)
+            self.text_values[2].config(fg="#000")
+        else:
+            self.text_values[0].config(fg="#333")
+            self.text_values[1].config(state=DISABLED)
+            self.text_values[2].config(fg="#333")
+    
     def getText(self, shift=0):
-        return string if (string := self.repeatMethod(self.getName(), self.getShift())) else self.code_string
-        # TODO: fix up
+        if "shift" in self.params_dict:
+            if len(string := self.values[1].get()) > 6 and string.count("/") == 2 and len(string.split("/")[2]) == 2:
+                date_list = string.split("/")
+                date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=shift)
+                return date.strftime(DATE_FORMAT)
+            else:
+                return self.code_string
+        else:
+            return string if (string := self.repeatMethod(self.getName(), self.getShift())) else self.code_string
+    
+    def setText(self, text):
+        if len(text) > 6 and text.count("/") == 2 and len(text.split("/")[2]) == 2:
+            date_list = text.split("/")
+            date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=self.getShift())
+            self.values[1].set(date.strftime("%m/%I/%y"))
 

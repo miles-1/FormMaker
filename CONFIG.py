@@ -31,6 +31,7 @@ SPLIT = START + "split" + CLOSE
 NORM_FONT = ('Courier New', 9, 'normal')
 BOLD_FONT = ('Calibri', 12, 'bold')
 BOLD_SPLIT = "~"
+DATE_FORMAT = "%a, %b %d"
 
 manual = "FormMaker User Manual\n\n" + \
     "\tThis program seeks to allow the quick creation of form-style documents. Specifically, " + \

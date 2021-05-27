@@ -80,7 +80,7 @@ def processText(title, text, root, updateMethod, repeatMethod):
     text_lst = formatText(title, text)
     vars_dict = {}
     repeat_dict = defaultdict(list)
-    for num, section in text_lst:
+    for indx, section in enumerate(text_lst):
         section_lst = []
         for num, pseudo_frag in enumerate(section.split(START)):
             if not num:
@@ -108,10 +108,10 @@ def processText(title, text, root, updateMethod, repeatMethod):
                     field_obj = Repeatfield(*obj_params, repeatMethod)
                     repeat_dict[field_obj.getName()].append(field_obj)
                 else:
-                    field_obj = locals()(field_pair[0].title() + "field")(*obj_params)
+                    field_obj = globals()[field_pair[0].title() + "field"](*obj_params)
                     vars_dict[field_obj.getName()] = field_obj
                 section_lst.extend([field_obj, frags[1]])
-        text_lst[num] = section_lst
+        text_lst[indx] = section_lst
     return text_lst, vars_dict, repeat_dict
 
 
@@ -120,6 +120,8 @@ class Order:
         self.updateMethod = updateMethod
         self.text_lst, self.vars_dict, self.repeat_dict = \
             processText(title, text, root, self.updateMethod, self.returnRepeat)
+        print(self.text_lst)
+        sys
 
     def updateField(self, name):
         if name in self.repeat_dict:
