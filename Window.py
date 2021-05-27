@@ -1,7 +1,8 @@
-from tkinter import Frame, Radiobutton, Text, Label, IntVar, Button
+from tkinter import Frame, Radiobutton, Label, IntVar, Button
 from tkinter.ttk import Separator
 from tkinter import VERTICAL, END, WORD, HORIZONTAL
 from Order import Order
+from Field import TextHTML
 from CONFIG import template_dir, BOLD_SPLIT
 import os
 
@@ -34,9 +35,7 @@ class Window:
             Radiobutton(f0, text=name.replace(".txt","").title(), variable=self.radio_var, 
                         value=num, command=self.updateOrder).grid(row=0, column=num)
 
-        self.textbox = Text(f2, width=40, height=40, bg="#eee", bd=2, wrap=WORD)
-        self.textbox.tag_configure("bold", font=('Arial', 14, 'bold'))
-        self.textbox.tag_configure("norm", font=('Courier', 12))
+        self.textbox = TextHTML(f2, width=40, height=40, bg="#eee", bd=2, wrap=WORD)
         self.updateText()
         b0 = Button(f2, text="Copy Text", command=self.copyText)
 
@@ -62,19 +61,11 @@ class Window:
         self.updateText()
     
     def updateText(self):
-        self.textbox.delete(1.0, END)
         if self.radio_var.get() == -1:
-            self.insertText("Select a template above to see preview here.")
+            self.textbox.delete(1.0, END)
+            self.textbox.insert(END, "Select a template above to see preview here.")
         else:
-            self.insertText(self.current_order.getText())
-    
-    def insertText(self, text):
-        split_text = text.split(BOLD_SPLIT)
-        for i, text_frag in enumerate(split_text):
-            if not i % 2:
-                self.textbox.insert(END, text_frag, "norm")
-            else:
-                self.textbox.insert(END, text_frag, "bold")
+            self.textbox.setHTML(self.current_order.getHTML())
     
     def copyText(self):
         pass

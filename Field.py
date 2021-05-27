@@ -1,8 +1,37 @@
 from tkinter import Frame, Entry, Label, StringVar, IntVar, Checkbutton, Radiobutton, Text, Toplevel
 from tkinter import WORD, END
 from datetime import datetime, timedelta
-from CONFIG import list_path, label_font, desc_font
+from CONFIG import list_path, label_font, desc_font, NORM_FONT, BOLD_FONT
 import os
+
+
+class TextHTML(Text):
+    def __init__(self, root, **kwargs):
+        super().__init__(root, **kwargs)
+        self.font_lst = []
+    
+    def setHTML(self, html):
+        self.delete(1.0, END)
+        for frag in html.split("<pre style=\""):
+            if frag:
+                for style, content in frag.split("\">", 1):
+                    font = tuple([pair.split(":")[1] for pair in style.split(";")])
+                    if font not in self.font_lst:
+                        self.tag_configure(len(self.font_lst), font=font)
+                        self.font_lst.append(font)
+                    self.insert(END, content.replace("</pre>","").replace("&nbsp", " ").replace("<br />", "\n") \
+                        .replace("&lt;", "<").replace("&gt;", ">"), self.font_lst.index(font))
+
+class Font:
+    def __init__(self, font=NORM_FONT[0], size=NORM_FONT[1], style=NORM_FONT[2]):
+        self.font = (font, size, style)
+    
+    def getFont(self):
+        return self.font
+    
+    def getHTML(self, content):
+        return f'<span style="font-family:{self.font[0]};font-size:{self.font[1]};font-weight:{self.font[2]}">' + \
+            content.replace(" ", "&nbsp").replace("\n", "<br />").replace("<", "&lt;").replace(">", "&gt;") + "</span>"
 
 class Search: 
     '''A widget with features of Entry and Combobox that allows for a dropdown list 
