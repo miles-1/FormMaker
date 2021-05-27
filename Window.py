@@ -3,14 +3,15 @@ from tkinter.ttk import Separator
 from tkinter import VERTICAL, END, WORD, HORIZONTAL
 from Order import Order
 from Field import TextHTML
-from CONFIG import template_dir, BOLD_SPLIT
+from CONFIG import template_dir
 import os
+# import klembord
 
 
 class Window:
     def __init__(self, root):
         self.root = root
-        self.root.title("Order Generator")
+        self.root.title("FormMaker")
         self.template_names = [name for name in os.listdir(template_dir) if name[-4:] == ".txt"]
         self.templates = []
         self.field_obj = []
@@ -67,5 +68,7 @@ class Window:
         else:
             self.textbox.setHTML(self.current_order.getHTML())
     
-    def copyText(self):
+    def copyText(self, section):
         pass
+        # klembord.set_with_rich_text(*self.current_order.getHTML(section, return_html=True))
+        # TODO: verify it works w/o klembord.init()

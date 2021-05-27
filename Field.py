@@ -157,8 +157,11 @@ class Field:
     def getType(self):
         return self.type
     
-    def getText(self):
+    def getText(self, blank=False, shift=0):
         raise NotImplementedError("Extend getText")
+    
+    def __getattr__(self, name): 
+        return lambda *args, **kwargs: getattr(Frame, name)(self.frame, *args, **kwargs)
 
 class Textfield(Field):
     def set(self):
@@ -169,14 +172,11 @@ class Textfield(Field):
         Entry(self.frame, width=5, textvariable=self.values[0]).grid(row=0, column=1, padx=3)
         self.frame.pack(pady=5)
     
-    def drop2(self, type=1):
-        if type:
-            self.misc[1].config(values=self.text_values[self.values[0]])
-        self.misc[2].config(text=self.text_values[self.values[0]][self.values[1]])
-        self.updateMethod()
-    
-    def getText(self, shift=0):
-        return string if (string := self.values[0].get()) else self.code_string
+    def getText(self, shift=0, blank=False):
+        if blank:
+            return self.values[0].get()
+        else:
+            return string if (string := self.values[0].get()) else self.code_string
 
 class Datefield(Field):
     def set(self):

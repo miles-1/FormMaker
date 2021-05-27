@@ -2,9 +2,7 @@ from Field import Field, Font, Checkfield, Radiofield, Textfield, Datefield, \
     Checkbutton, Radiobutton, Dropfield, Drop2field, Repeatfield
 from collections import defaultdict
 from CONFIG import field_params, misc_tags, MAX_NUM_SPLITS, START, CLOSE, \
-    TITLE_END, PARAM_SET, PARAM_SEP, SPLIT, BOLD_SPLIT, NORM_FONT, BOLD_FONT
-import sys
-# import klembord
+    TITLE_END, PARAM_SET, PARAM_SEP, SPLIT, BOLD_SPLIT, BOLD_FONT
 
 
 def formatField(text):
@@ -110,22 +108,22 @@ def processText(title, text, root, updateMethod, repeatMethod):
                     field_obj = Repeatfield(*obj_params, repeatMethod)
                     repeat_dict[field_obj.getName()].append(field_obj)
                 else:
-                    field_obj = getattr(sys.modules[__name__], field_pair[0].title() + "field")(*obj_params)
+                    field_obj = locals()(field_pair[0].title() + "field")(*obj_params)
                     vars_dict[field_obj.getName()] = field_obj
                 section_lst.extend([field_obj, frags[1]])
+        text_lst[num] = section_lst
     return text_lst, vars_dict, repeat_dict
 
 
 class Order:
     def __init__(self, title, text, root, updateMethod):
-        self.text = text
         self.updateMethod = updateMethod
         self.text_lst, self.vars_dict, self.repeat_dict = \
             processText(title, text, root, self.updateMethod, self.returnRepeat)
 
     def updateField(self, name):
         if name in self.repeat_dict:
-            text = self.vars_dict[name].getText()
+            text = self.vars_dict[name].getText(blank=True)
             for field in self.repeat_dict[name]:
                 field.setText(text)
         self.updateMethod()
@@ -136,27 +134,29 @@ class Order:
     def getFieldObjects(self):
         return self.vars_dict.values()
 
-    def getText(self):
-        full_text = ""
-        for frag in self.text_lst:
-            if isinstance(frag, Field):
-                full_text += frag.getText()
-            else:
-                full_text += frag
-        return full_text
+    def getText(self, section, return_html=False):
+        html = self.getHTML(section)
+        text = html.replace("<br \>", "\n").replace("&nbsp", " ")
+        text = ''.join([entry2 for entry1 in text.split("<") for entry2 in entry1.split(">")][::2])
+        text = text.replace("&lt;", "<").replace("&gt;", ">")
+        if return_html:
+            return text, html
+        else:
+            return text
     
-    def getCopy(self, section):
-        text = self.getText().split(SPLIT)[section]
-        text_list = text.split(BOLD_SPLIT)
-        start_tag = "<pre "
-        end_tag = "</pre>"
-        formatted_text = ""
-        for num, entry in enumerate(text_list):
-            if not num % 2 and entry:
-                formatted_text += start_tag + NORM_FONT + ">" + entry + end_tag
-            elif entry:
-                formatted_text += start_tag + BOLD_FONT + ">" + entry + end_tag
-
-        # klembord.set_with_rich_text(text.replace(BOLD_SPLIT, ""), formatted_text)
-        # TODO: verify it works w/o klembord.init()
+    def getHTML(self, section=-1):
+        html = ""
+        if section == -1:
+            if (num_sections := len(self.text_lst)) > 1:
+                for num in range(num_sections):
+                    html += "\n="*10 + "SECTION " + str(num+1) + "="*10 + "\n" + self.getHTML(num)
+            elif num_sections == 1:
+                html += self.getHTML(0)
+        else:
+            for frag in self.text_lst[section]:
+                if isinstance(frag, Field):
+                    html += frag.getText()
+                else:
+                    html += frag
+        return html
 
