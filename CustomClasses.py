@@ -19,14 +19,17 @@ class Field:
         self.code_string = code_string
         self.type = type
         self.params_dict = params_dict
-        self.updateMethod = lambda: updateMethod(params_dict["name"])
+        if type == "repeat":
+            self.updateMethod = lambda: updateMethod(params_dict["name"], repeat=True)
+        else:
+            self.updateMethod = lambda: updateMethod(params_dict["name"])
         self.values = []
         self.text_values = []
         self.frame = Frame(root)
     
     def getShift(self):
         if "shift" in self.params_dict:
-            return self.params_dict["shift"]
+            return int(self.params_dict["shift"])
         else:
             return 0
     
@@ -102,16 +105,23 @@ class Datefield(Field):
         self.makeLabel(padx=3)
         self.values = StringVar()
         self.values.set(self.params_dict["default"] if "default" in self.params_dict else "")
-        self.values.trace_add("write", lambda a, b, c: self.updateMethod())
+        self.values.trace_add("write", self.update)
         Entry(self.frame, width=5, textvariable=self.values).grid(row=0, column=1, padx=3)
         self.makeLabel(text="MM/DD/YY", font=desc_font, column=2, padx=3)
         self.pack()
     
+    def update(self, *args):
+        if dateValid(self.values.get()):
+            self.updateMethod()
+    
     def getText(self, blank=False):
         if dateValid(string := self.values.get()):
             date_list = string.split("/")
-            return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(DATE_FORMAT)
-        elif blank:
+            try:
+                return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(DATE_FORMAT)
+            except ValueError:
+                pass
+        if blank:
             return ""
         else:
             return START + self.getName() + CLOSE
@@ -248,18 +258,23 @@ class Repeatfield(Field):
         if "shift" in self.params_dict:
             if dateValid(string := self.values[1].get()):
                 date_list = string.split("/")
-                date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1]))
-                return date.strftime(DATE_FORMAT)
-            else:
-                return START + self.getName() + ", shifted " + self.getShift() + CLOSE
+                try:
+                    return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(DATE_FORMAT)
+                except ValueError:
+                    pass
+            return START + self.getName() + ", shifted " + str(self.getShift()) + CLOSE
         else:
             return string if (string := self.repeatMethod(self.getName())) else START + self.getName() + CLOSE
     
     def setText(self, text):
-        if dateValid(text) and "shift" in self.params_dict:
-            date_list = text.split("/")
-            date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=self.getShift())
-            self.values[1].set(date.strftime("%m/%I/%y"))
+        if "shift" in self.params_dict:
+            month, day = text.split("/")
+            now = datetime.now()
+            date = datetime(now.year, int(month), int(day))
+            if date < now:
+                date = datetime(now.year + 1, int(month), int(day))
+            date = date + timedelta(days=self.getShift())
+            self.values[1].set(date.strftime("%m/%d/%y"))
             self.values[0].set(0)
             self.toggleActivity()
 

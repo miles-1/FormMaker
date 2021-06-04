@@ -188,11 +188,12 @@ class Order:
             processText(title, text, root, self.updateField, self.returnRepeat)
         self.num_sections = len(self.text_lst)
 
-    def updateField(self, name):
-        if name in self.repeat_dict:
-            text = self.vars_dict[name].getText(blank=True)
-            for field in self.repeat_dict[name]:
-                field.setText(text)
+    def updateField(self, name, repeat=False):
+        if not repeat:
+            if name in self.repeat_dict:
+                text = self.vars_dict[name].getText(blank=True)
+                for field in self.repeat_dict[name]:
+                    field.setText(text)
         self.updateMethod()
     
     def returnRepeat(self, name):

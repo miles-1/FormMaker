@@ -40,7 +40,7 @@ TITLE_END, PARAM_SEP, PARAM_SET = ".", ",", "="
 NORM_FONT = ('Courier New', 9, 'normal')
 BOLD_FONT = ('Calibri', 12, 'bold')
 BOLD_SPLIT = "~"
-DATE_FORMAT = "%a, %b %d"
+DATE_FORMAT = "%m/%d"
 
 manual = "\tThis program seeks to allow the quick creation of form-style documents. Specifically, " + \
     "this program is intended for situations where many similar but non-identical versions of " + \
