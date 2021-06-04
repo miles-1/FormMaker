@@ -3,6 +3,7 @@ from tkinter import Frame, Entry, Label, StringVar, IntVar, Checkbutton, Radiobu
 from tkinter import WORD, END, NORMAL, DISABLED, VERTICAL, LEFT
 from datetime import datetime, timedelta
 from tkinter.constants import NO
+from typing import Collection
 from CONFIG import list_path, label_font, desc_font, title_font, entry_width, \
     NORM_FONT, DATE_FORMAT, START, CLOSE
 import os
@@ -106,7 +107,7 @@ class Datefield(Field):
         self.values = StringVar()
         self.values.set(self.params_dict["default"] if "default" in self.params_dict else "")
         self.values.trace_add("write", self.update)
-        Entry(self.frame, width=5, textvariable=self.values).grid(row=0, column=1, padx=3)
+        Entry(self.frame, width=entry_width, textvariable=self.values).grid(row=0, column=1, padx=3)
         self.makeLabel(text="MM/DD/YY", font=desc_font, column=2, padx=3)
         self.pack()
     
@@ -134,7 +135,7 @@ class Checkfield(Field):
         for num, option in enumerate(self.text_values):
             self.values.append(IntVar())
             Checkbutton(self.frame, text=option, variable=self.values[num],
-                        command=self.updateMethod).grid(row=num+1, column=0)
+                        command=self.updateMethod).grid(row=num+1, column=0, sticky="w")
         self.pack()
 
     def getText(self, blank=False):
@@ -154,7 +155,7 @@ class Radiofield(Field):
         self.values.set(-1)
         for num, option in enumerate(self.text_values):
             Radiobutton(self.frame, text=option, variable=self.values, value=num, 
-                        command=self.updateMethod).grid(row=num+1, column=0)
+                        command=self.updateMethod).grid(row=num+1, column=0, sticky="w")
         self.pack()
 
     def getText(self, blank=False):
@@ -180,25 +181,27 @@ class Dropfield(Field):
 
 class Drop2field(Field):
     def set(self):
-        self.makeLabel(padx=3, sticky="w")
+        self.makeLabel(padx=3, sticky="w", columnspan=2)
         self.text_values = self.processText()
         self.values.append(Search(self.frame, list(self.text_values)))
         self.values[0].stringvar.trace_add("write", self.updateSearchList)
         self.values.append(Search(self.frame, ["Select list on the right"]))
         self.values[1].stringvar.trace_add("write", self.updateAll)
         self.values.append(Label(self.frame, text="", font=desc_font))
-        for num, widget in enumerate(self.values):
-            widget.grid(row=1+num, column=0, padx=3)
+        
+        self.values[0].grid(row=1, column=0)
+        self.values[1].grid(row=1, column=1, padx=3, pady=3)
+        self.values[2].grid(row=2, column=1, columnspan=2, pady=3)
         self.pack()
     
-    def updateSearchList(self):
+    def updateSearchList(self, *args):
         entry1 = self.values[0].get()
         if entry1 in self.text_values:
             self.values[1].set("")
             self.values[1].lst = list(self.text_values[entry1])
             self.values[1].updateList()
     
-    def updateAll(self):
+    def updateAll(self, *args):
         entry1, entry2 = self.values[0].get(), self.values[1].get()
         if entry1 in self.text_values and entry2 in self.text_values[entry1]:
             self.values[2].config(text=self.text_values[entry1][entry2])
@@ -233,10 +236,10 @@ class Repeatfield(Field):
             self.values[1].trace_add("write", lambda a, b, c: self.updateMethod())
             Checkbutton(self.frame, text="Enable", variable=self.values[0], 
                         command=self.toggleActivity).grid(row=0, column=0, columnspan=3, sticky="w")
-            self.text_values.append(Label(self.frame, text=self.getName().title() + ", shifted by " + \
+            self.text_values.append(Label(self.frame, text=self.getName().title() + ", shifted " + \
                 self.params_dict["shift"] + ":", font=label_font, fg=self.disabled_color))
             self.text_values[0].grid(row=1, column=0, padx=3)
-            self.text_values.append(Entry(self.frame, width=5, textvariable=self.values[1], state=DISABLED))
+            self.text_values.append(Entry(self.frame, width=entry_width, textvariable=self.values[1], state=DISABLED))
             self.text_values[1].grid(row=1, column=1, padx=3)
             self.text_values.append(Label(self.frame, text="MM/DD/YY", font=desc_font, fg=self.disabled_color))
             self.text_values[2].grid(row=1, column=2, padx=3)
@@ -323,7 +326,7 @@ class ScrollableFrame(Frame):
         self.scrollbar = Scrollbar(self.mainframe, orient=VERTICAL, command=self.canvas.yview)
         super().__init__(self.canvas)
         self.bind("<Configure>", self.reconfigure)
-        self.bind("<MouseWheel>", self.on_mousewheel)
+        self.bind_all("<MouseWheel>", self.on_mousewheel)
         self.canvas.create_window((0, 0), window=self, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True)
@@ -334,7 +337,8 @@ class ScrollableFrame(Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
     
     def on_mousewheel(self, event):
-        self.canvas.yview_scroll(-1*(event.delta/120), "units")
+        if type(event.widget).__name__ not in ['TextHTML', 'Text']:
+            self.canvas.yview_scroll(-1*int(event.delta/120), "units")
     
     def grid(self, **kwargs):
         self.mainframe.grid(**kwargs)
@@ -401,7 +405,7 @@ class Search:
     
     def showList(self, *args): 
         self.toplevel = Toplevel(self.root) 
-        self.toplevel.wm_overrideredirect()
+        self.toplevel.wm_overrideredirect(True)
         x = self.entry.winfo_rootx() 
         y = self.entry.winfo_rooty() + self.entry.winfo_height()
         self.toplevel.wm_geometry(f"+{x}+{y}")
@@ -464,7 +468,7 @@ class Search:
         if user_input in self.lst or self.allow_unlisted: 
             return user_input 
         else: 
-            return "" 
+            return ""
     
     def set(self, user_input): 
         self.stringvar.set(user_input)

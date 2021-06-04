@@ -1,0 +1,82 @@
+Custom Prism
+    9:Natural Gray
+    10:Antique White
+    11:Snow White
+    19:Pewter
+    52:Tobacco Brown
+    59:Saddle Brown
+    60:Charcoal
+    101:Quartz
+    105:Earth
+    115:Platinum
+    122:Linen
+    135:Mushroom
+    145:Light Smoke
+    156:Fawn
+    165:Delorean Gray
+    172:Urban Putty
+    183:Chateau
+    185:New Taupe
+    186:Khaki
+    333:Alabaster
+    335:Winter Gray
+    370:Dove Gray
+    380:Haystack
+    381:Bright White
+    382:Bone
+    386:Oyster Gray
+    540:Truffle
+    541:Walnut
+    542:Graystone
+    543:Driftwood
+    544:Rolling Fog
+    545:Bleached Wood
+    546:Cape Gray
+    640:Arctic White
+    641:Cool White
+    642:Ash
+    643:Warm Gray
+    644:Shadow
+    645:Steel Blue
+C-Cure
+    2:Gray
+    8:Black?
+    14:Natural Gray
+    19:Cream
+    22:Walnut
+    27:Sahara Brown
+    31:Buckskin Beige
+    53:Bone
+    61:Executive Gray
+    115:Silver Gray
+    142:Pearl Gray
+    163:Almond
+    251:Canvas
+    259:Winter Frost
+Mapei
+    1:Alabaster
+    2:Pewter
+    4:Bahama Beige
+    7:Chocolate
+    10:Black
+    11:Sahara Beige
+    14:Biscuit
+    15:Bone
+    19:Pearl Gray
+    25:White
+    27:Silver
+    35:Navajo Brown
+    38:Avalanche
+    39:Ivory
+    42:Mocha
+    47:Charcoal
+    77:Frost
+    93:Warm Gray
+    101:Rain
+    102:Mint
+    103:Cobblestone
+    104:Timberwolf
+    105:Driftwood
+    106:Walnut
+    107:Iron
+    142:Pearl Gray

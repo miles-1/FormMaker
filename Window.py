@@ -5,7 +5,7 @@ from Order import Order
 from CustomClasses import HelpBox, TextHTML, ScrollableFrame
 from CONFIG import template_dir, img_dir, manual, column_width, column_height
 import os
-# import klembord
+import klembord
 
 
 class Window:
@@ -42,7 +42,7 @@ class Window:
         s0 = Separator(self.root, orient=VERTICAL)
 
         self.f2 = Frame(self.root)
-        self.textbox = TextHTML(self.f2, width=int(column_width/8), 
+        self.textbox = TextHTML(self.f2, width=int(column_width/6), 
                                 height=int(column_height/12), bg="#eee", bd=2, wrap=WORD)
         self.updateText()
         self.button_frame = Frame(self.f2)
@@ -62,6 +62,7 @@ class Window:
         self.current_order = Order(self.template_names[(current := self.radio_var.get())], 
                                    self.templates[current], self.f1, self.updateText)
         repeat_dict = self.current_order.getRepeatDict()
+        Label(self.f1, text="").pack(pady=10)
         for field in self.current_order.getFieldObjects():
             field.set()
             if (name := field.getName()) in repeat_dict:
@@ -69,6 +70,7 @@ class Window:
                     if repeat_obj.getShift():
                         repeat_obj.set()
             Separator(self.f1, orient=HORIZONTAL).pack(fill="x")
+        Label(self.f1, text="").pack(pady=10)
         self.f1.grid(row=2, column=0, padx=10)
         self.updateText()
         # Copy Buttons
@@ -88,6 +90,5 @@ class Window:
             self.textbox.setHTML(self.current_order.getHTML())
     
     def copyText(self, section):
-        pass
-        # klembord.set_with_rich_text(*self.current_order.getHTML(section, return_html=True))
+        klembord.set_with_rich_text(*self.current_order.getHTML(section, return_html=True))
         # TODO: verify it works w/o klembord.init()
