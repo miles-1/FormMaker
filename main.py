@@ -2,7 +2,6 @@ from Window import Window
 from tkinter import Tk, messagebox
 from CustomClasses import TkExceptionHandler
 import tkinter
-import traceback
 
 if __name__ == "__main__":
     tkinter.CallWrapper = TkExceptionHandler
@@ -13,4 +12,8 @@ if __name__ == "__main__":
     except SyntaxError as e:
         messagebox.showerror(message="Error in templates: " + e)
     except Exception as e:
-        messagebox.showerror(message= type(e).__name__ + ": " + str(e) + "\n"*3 + traceback.format_exc())
+        import traceback
+        import sys
+        print(type(e).__name__ + ": " + str(e) + "\n"*3 + traceback.format_exc()) # TODO: Remove
+        messagebox.showerror(message=type(e).__name__ + ": " + str(e) + "\n"*3 + traceback.format_exc())
+        sys.exit()

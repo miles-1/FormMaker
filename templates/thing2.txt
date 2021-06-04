@@ -17,7 +17,7 @@ FLOOR GROUT - [drop2.name="floor grout color 1",content=groutlist.txt]
 [text. name="floor grout location 1"]
 
 FLOOR GROUT - [drop2.name="floor grout color 2",content=groutlist.txt]
-[text. name="floor grout location 1"]
+[text. name="floor grout location 2"]
 
 SPL GROUT - [drop2.name="splash grout color",content=groutlist.txt]
 [text. name="splash grout location 1"]
@@ -26,7 +26,7 @@ MUD GROUT - [drop2.name="mud grout color 1",content=groutlist.txt]
 [text. name="mud grout location 1"]
 
 MUD GROUT - [drop2.name="mud grout color 2",content=groutlist.txt]
-[text. name="mud grout location 1"]
+[text. name="mud grout location 2"]
 
 TILE - ([text.name="Square Footage"] SF)  [text. name="Tile Size 1"] [text. name="Tile Size 2"]
 

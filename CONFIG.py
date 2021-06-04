@@ -3,11 +3,18 @@ import os, sys
 main_path = os.path.dirname(sys.argv[0])
 list_path = os.path.join(main_path, "lists/")
 template_dir = os.path.join(main_path, "templates/")
+img_dir = os.path.join(main_path, "help.png")
 
+# Can be changed for program functionality
 label_font = ('Arial', 12, 'bold')
 desc_font = ('Arial', 12, 'italic')
+title_font = ('Arial', 16, 'bold')
 text_font = ('Arial', 9)
+entry_width = 15
+column_width = 300 # pixels
+column_height = 500 # pixels
 
+# These are hardcoded in other regions
 field_params = {
                 "text": ["name", "default"],
                 "date": ["name"], 
@@ -24,6 +31,8 @@ misc_tags = {
              "split": ["name"]
             }
 
+
+
 # These can be changed for template syntax
 MAX_NUM_SPLITS = 5
 START, CLOSE = "[", "]"
@@ -33,8 +42,7 @@ BOLD_FONT = ('Calibri', 12, 'bold')
 BOLD_SPLIT = "~"
 DATE_FORMAT = "%a, %b %d"
 
-manual = "FormMaker User Manual\n\n" + \
-    "\tThis program seeks to allow the quick creation of form-style documents. Specifically, " + \
+manual = "\tThis program seeks to allow the quick creation of form-style documents. Specifically, " + \
     "this program is intended for situations where many similar but non-identical versions of " + \
     "a document are required. Here, documentation for program usage is provided.\n\n" + \
     "REQUIRED FILE ORGANIZATION.\n" + \
@@ -79,10 +87,10 @@ manual = "FormMaker User Manual\n\n" + \
     "\tTWO-DROPDOWN SELECTION. The 'drop2' tag is similar to the 'drop' tag except instead of using " + \
     "a basic linebreak-separated text document, it utilizes a list of lists. The 'content' file will " + \
     "be organized not only by line breaks but also tabs. For example, the file may appear like this:\n" + \
-    "Kitchen\n\t1:Pot\n\t2:Pan\n\t3:Bowl\nBathroom\n\t1:Toilet\n\t2:Sink\n\t3:Bathtub\n" + \
-    "\tThis file" + \
-    "\nREPEAT PREVIOUS ENTRY. This will repeat the text generated from a previous tag as specified " + \
+    "\nKitchen\n\t1:Pot\n\t2:Pan\n\t3:Bowl\nBathroom\n\t1:Toilet\n\t2:Sink\n\t3:Bathtub\n" + \
+    "\n\tThis file is read into the program and used for searchable text entry boxes." + \
+    "\n\tREPEAT PREVIOUS ENTRY. This will repeat the text generated from a previous tag as specified " + \
     "by name. Note that this means that you will copy exactly the name assigned to the tag desired " + \
     "to be copied.\n" + \
-    "\nSPLIT FORM. The 'split' tag takes no parameters and allows for separate copying of sections " + \
+    "\n\tSPLIT FORM. The 'split' tag takes no parameters and allows for separate copying of sections " + \
     "within the document as a whole."

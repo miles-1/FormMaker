@@ -1,3 +1,4 @@
+from tkinter import Button
 from typing import Counter
 from CustomClasses import Field, Font, Checkfield, Radiofield, Textfield, Datefield, \
     Checkbutton, Radiobutton, Dropfield, Drop2field, Repeatfield
@@ -144,6 +145,14 @@ def makeRepeatObj(repeat_dict, obj_params, repeatMethod):
         repeat_dict[field_obj.getName()].append(field_obj)
     return field_obj
 
+def makeFieldObj(vars_dict, obj_params, title):
+    field_obj = globals()[obj_params[2].title() + "field"](*obj_params)
+    if (name := field_obj.getName()) in vars_dict:
+        raise SyntaxError(f"Duplicate name between tags in {title}: {name}")
+    else:
+        vars_dict[field_obj.getName()] = field_obj
+    return field_obj
+
 def processText(title, text, root, updateMethod, repeatMethod):
     '''Convert list of strings to data format satisfying Order class:
     [
@@ -166,8 +175,7 @@ def processText(title, text, root, updateMethod, repeatMethod):
                 if obj_params[2] == "repeat":
                     field_obj = makeRepeatObj(repeat_dict, obj_params, repeatMethod)
                 else:
-                    field_obj = globals()[obj_params[2].title() + "field"](*obj_params)
-                    vars_dict[field_obj.getName()] = field_obj
+                    field_obj = makeFieldObj(vars_dict, obj_params, title)
                 section_lst.extend([field_obj, content])
         text_lst[indx] = [section_title, section_lst]
     return text_lst, vars_dict, repeat_dict
@@ -177,7 +185,8 @@ class Order:
     def __init__(self, title, text, root, updateMethod):
         self.updateMethod = updateMethod
         self.text_lst, self.vars_dict, self.repeat_dict = \
-            processText(title, text, root, self.updateMethod, self.returnRepeat)
+            processText(title, text, root, self.updateField, self.returnRepeat)
+        self.num_sections = len(self.text_lst)
 
     def updateField(self, name):
         if name in self.repeat_dict:
@@ -208,10 +217,11 @@ class Order:
     def getHTML(self, section=-1):
         html = ""
         if section == -1:
-            if (num_sections := len(self.text_lst)) > 1:
-                for num in range(num_sections):
-                    html += "\n="*10 + self.text_lst[num][0] + "="*10 + "\n" + self.getHTML(num)
-            elif num_sections == 1:
+            if self.num_sections > 1:
+                for num in range(self.num_sections):
+                    html += '<span style="font-family:Arial;font-size:16;font-weight:bold"><br />' + \
+                            self.text_lst[num][0] + "</span><br />" + self.getHTML(num)
+            elif self.num_sections == 1:
                 html += self.getHTML(0)
         else:
             for frag in self.text_lst[section][1]:
@@ -220,4 +230,7 @@ class Order:
                 else:
                     html += frag
         return html
+    
+    def getCopyButtonInfo(self):
+        return [entry[0] for entry in self.text_lst]
 

@@ -1,10 +1,293 @@
 from tkinter.ttk import Scrollbar
 from tkinter import Frame, Entry, Label, StringVar, IntVar, Checkbutton, Radiobutton, Text, Toplevel, Canvas
-from tkinter import WORD, END, NORMAL, DISABLED, VERTICAL
+from tkinter import WORD, END, NORMAL, DISABLED, VERTICAL, LEFT
 from datetime import datetime, timedelta
 from tkinter.constants import NO
-from CONFIG import list_path, label_font, desc_font, NORM_FONT, DATE_FORMAT, START, CLOSE
+from CONFIG import list_path, label_font, desc_font, title_font, entry_width, \
+    NORM_FONT, DATE_FORMAT, START, CLOSE
 import os
+
+# Field classes
+
+def dateValid(date):
+    return len(date) >= 6 and date.count("/") == 2 and len(date.split("/")[2]) == 2
+
+
+class Field:
+    def __init__(self, id, code_string, type, params_dict, root, updateMethod):
+        self.id = id
+        self.code_string = code_string
+        self.type = type
+        self.params_dict = params_dict
+        self.updateMethod = lambda: updateMethod(params_dict["name"])
+        self.values = []
+        self.text_values = []
+        self.frame = Frame(root)
+    
+    def getShift(self):
+        if "shift" in self.params_dict:
+            return self.params_dict["shift"]
+        else:
+            return 0
+    
+    def getName(self):
+        return self.params_dict["name"]
+    
+    def getID(self):
+        return self.id
+    
+    def getType(self):
+        return self.type
+    
+    def getText(self, blank=False, shift=0):
+        raise NotImplementedError("Extend .getText()")
+    
+    def set(self):
+        raise NotImplementedError("Extend .set()")
+    
+    def getContent(self):
+        if "content" in self.params_dict:
+            if os.path.isfile(os.path.join(list_path, self.params_dict["content"])):
+                f = open(os.path.join(list_path, self.params_dict["content"]))
+                lst_options = f.read()
+                f.close()
+            else:
+                lst_options = self.params_dict["content"]
+            return lst_options
+    
+    def pack(self):
+        self.frame.pack(pady=5, fill="both", expand=True)
+    
+    def makeLabel(self, text=None, row=0, column=0, font=None, **kwargs):
+        if not font:
+            font = label_font
+        if not text:
+            text = self.getName().title() + ":"
+        Label(self.frame, text=text, font=font).grid(row=row, column=column, **kwargs)
+    
+    def __getattr__(self, name): 
+        return lambda *args, **kwargs: getattr(Frame, name)(self.frame, *args, **kwargs)
+
+class Textfield(Field):
+    def set(self):
+        self.makeLabel(sticky="w")
+        self.default_text = self.params_dict["default"] if "default" in self.params_dict else ""
+        if len(self.default_text) < entry_width and self.default_text != "^":
+            self.values = StringVar()
+            self.values.set(self.default_text)
+            self.values.trace_add("write", lambda *args: self.updateMethod())
+            Entry(self.frame, width=entry_width, textvariable=self.values).grid(row=1, column=0, sticky="w")
+        else:
+            if self.default_text == "^":
+                self.default_text = ""
+            self.values = Text(self.frame, wrap=WORD, width=entry_width*2, 
+                               height=min(4,len(self.default_text)//entry_width))
+            self.values.insert(1.0, self.default_text)
+            self.values.bind("<Any-KeyPress>", lambda *args: self.updateMethod())
+            self.values.grid(row=1, column=0, sticky="w")
+        self.pack()
+    
+    def getText(self, blank=False):
+        if isinstance(self.values, StringVar):
+            response = self.values.get()
+        else:
+            response = self.values.get("1.0", END)[:-1]
+        if blank or response:
+            return response
+        else:
+            return START + self.getName() + CLOSE
+
+class Datefield(Field):
+    def set(self):
+        self.makeLabel(padx=3)
+        self.values = StringVar()
+        self.values.set(self.params_dict["default"] if "default" in self.params_dict else "")
+        self.values.trace_add("write", lambda a, b, c: self.updateMethod())
+        Entry(self.frame, width=5, textvariable=self.values).grid(row=0, column=1, padx=3)
+        self.makeLabel(text="MM/DD/YY", font=desc_font, column=2, padx=3)
+        self.pack()
+    
+    def getText(self, blank=False):
+        if dateValid(string := self.values.get()):
+            date_list = string.split("/")
+            return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(DATE_FORMAT)
+        elif blank:
+            return ""
+        else:
+            return START + self.getName() + CLOSE
+
+class Checkfield(Field):
+    def set(self):
+        self.makeLabel(sticky="w")
+        lst_options = self.getContent()
+        self.text_values = lst_options.split("\n")
+        for num, option in enumerate(self.text_values):
+            self.values.append(IntVar())
+            Checkbutton(self.frame, text=option, variable=self.values[num],
+                        command=self.updateMethod).grid(row=num+1, column=0)
+        self.pack()
+
+    def getText(self, blank=False):
+        if any(item.get() for item in self.values):
+            return "\n".join([item for num, item in enumerate(self.text_values) if self.values[num].get()])
+        elif blank:
+            return ""
+        else:
+            return START + self.getName() + CLOSE
+
+class Radiofield(Field):
+    def set(self):
+        self.makeLabel(sticky="w")
+        lst_options = self.getContent()
+        self.text_values = lst_options.split("\n")
+        self.values = IntVar()
+        self.values.set(-1)
+        for num, option in enumerate(self.text_values):
+            Radiobutton(self.frame, text=option, variable=self.values, value=num, 
+                        command=self.updateMethod).grid(row=num+1, column=0)
+        self.pack()
+
+    def getText(self, blank=False):
+        if (value := self.values.get()) > -1:
+            return self.text_values[value]
+        elif blank:
+            return ""
+        else:
+            return START + self.getName() + CLOSE
+
+class Dropfield(Field):
+    def set(self):
+        self.makeLabel(sticky="w")
+        lst_options = self.getContent()
+        self.text_values = lst_options.split("\n")
+        self.values = StringVar()
+        self.values.trace_add("write", lambda a, b, c: self.updateMethod())
+        Search(self.frame, lst=self.text_values).grid(row=1, column=0)
+        self.pack()
+
+    def getText(self, blank=False):
+        return string if (string := self.values.get()) else ("" if blank else START + self.getName() + CLOSE)
+
+class Drop2field(Field):
+    def set(self):
+        self.makeLabel(padx=3, sticky="w")
+        self.text_values = self.processText()
+        self.values.append(Search(self.frame, list(self.text_values)))
+        self.values[0].stringvar.trace_add("write", self.updateSearchList)
+        self.values.append(Search(self.frame, ["Select list on the right"]))
+        self.values[1].stringvar.trace_add("write", self.updateAll)
+        self.values.append(Label(self.frame, text="", font=desc_font))
+        for num, widget in enumerate(self.values):
+            widget.grid(row=1+num, column=0, padx=3)
+        self.pack()
+    
+    def updateSearchList(self):
+        entry1 = self.values[0].get()
+        if entry1 in self.text_values:
+            self.values[1].set("")
+            self.values[1].lst = list(self.text_values[entry1])
+            self.values[1].updateList()
+    
+    def updateAll(self):
+        entry1, entry2 = self.values[0].get(), self.values[1].get()
+        if entry1 in self.text_values and entry2 in self.text_values[entry1]:
+            self.values[2].config(text=self.text_values[entry1][entry2])
+            self.updateMethod()
+
+    def getText(self, blank=False):
+        entry = "".join([item.get() for item in self.values[:2]])
+        if entry:
+            return entry
+        elif blank:
+            return ""
+        else:
+            return START + self.getName() + CLOSE
+    
+    def processText(self):
+        content_dict = {}
+        for lst in self.getContent().replace("\n\t","\t").split("\n"):
+            content_lst = lst.split("\t")
+            content_dict[content_lst[0]] = dict(entry.split(":") for entry in content_lst[1:])
+        return content_dict
+
+class Repeatfield(Field):
+    def __init__(self, id, code_string, type, params_dict, root, updateMethod, repeatMethod):
+        super().__init__(id, code_string, type, params_dict, root, updateMethod)
+        self.repeatMethod = repeatMethod
+        self.disabled_color = "#aaaaaa"
+    
+    def set(self):
+        if "shift" in self.params_dict:
+            self.values.append(IntVar())
+            self.values.append(StringVar())
+            self.values[1].trace_add("write", lambda a, b, c: self.updateMethod())
+            Checkbutton(self.frame, text="Enable", variable=self.values[0], 
+                        command=self.toggleActivity).grid(row=0, column=0, columnspan=3, sticky="w")
+            self.text_values.append(Label(self.frame, text=self.getName().title() + ", shifted by " + \
+                self.params_dict["shift"] + ":", font=label_font, fg=self.disabled_color))
+            self.text_values[0].grid(row=1, column=0, padx=3)
+            self.text_values.append(Entry(self.frame, width=5, textvariable=self.values[1], state=DISABLED))
+            self.text_values[1].grid(row=1, column=1, padx=3)
+            self.text_values.append(Label(self.frame, text="MM/DD/YY", font=desc_font, fg=self.disabled_color))
+            self.text_values[2].grid(row=1, column=2, padx=3)
+            self.pack()
+        else:
+            return
+    
+    def toggleActivity(self):
+        if self.values[0].get():
+            self.text_values[0].config(fg="#000")
+            self.text_values[1].config(state=NORMAL)
+            self.text_values[2].config(fg="#000")
+        else:
+            self.text_values[0].config(fg=self.disabled_color)
+            self.text_values[1].config(state=DISABLED)
+            self.text_values[2].config(fg=self.disabled_color)
+    
+    def getText(self):
+        if "shift" in self.params_dict:
+            if dateValid(string := self.values[1].get()):
+                date_list = string.split("/")
+                date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1]))
+                return date.strftime(DATE_FORMAT)
+            else:
+                return START + self.getName() + ", shifted " + self.getShift() + CLOSE
+        else:
+            return string if (string := self.repeatMethod(self.getName())) else START + self.getName() + CLOSE
+    
+    def setText(self, text):
+        if dateValid(text) and "shift" in self.params_dict:
+            date_list = text.split("/")
+            date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=self.getShift())
+            self.values[1].set(date.strftime("%m/%I/%y"))
+            self.values[0].set(0)
+            self.toggleActivity()
+
+# Non-Field Classes
+
+class HelpBox:
+    def __init__(self, widget, title, message):
+        self.root = widget.master
+        self.widget = widget
+        self.title = title
+        self.message = message
+        self.widget.bind('<Button-1>', self.popup)
+
+    def popup(self, event):
+        window = Toplevel(self.root)
+        l0 = Label(window, text=self.title, font=title_font, justify=LEFT)
+        f0 = Frame(window)
+        t0 = Text(f0, height=30, width=75, wrap=WORD)
+        s0 = Scrollbar(f0)
+        t0.config(yscrollcommand=s0.set)
+        s0.config(command=t0.yview)
+
+        t0.insert(END, self.message)
+
+        t0.config(state=DISABLED)
+        t0.pack(side=LEFT)
+        l0.pack()
+        f0.pack()
 
 class TkExceptionHandler:
     def __init__(self, func, subst, widget):
@@ -21,11 +304,15 @@ class ScrollableFrame(Frame):
     def __init__(self, root, *args, **kwargs):
         self.root = root
         self.mainframe = Frame(root, *args, **kwargs)
-        self.canvas = Canvas(self.mainframe)
+        self.canvas = Canvas(self.mainframe, height=kwargs["height"])
         self.scrollbar = Scrollbar(self.mainframe, orient=VERTICAL, command=self.canvas.yview)
-        super().__init__(self.canvas, height=kwargs["height"])
+        super().__init__(self.canvas)
         self.bind("<Configure>", self.reconfigure)
         self.bind("<MouseWheel>", self.on_mousewheel)
+        self.canvas.create_window((0, 0), window=self, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
     
     def reconfigure(self, *args):
         self.root.update()
@@ -36,10 +323,6 @@ class ScrollableFrame(Frame):
     
     def grid(self, **kwargs):
         self.mainframe.grid(**kwargs)
-        self.canvas.create_window((0, 0), window=self, anchor="nw")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.scrollbar.pack(side="right", fill="y")
 
 class TextHTML(Text):
     def __init__(self, root, **kwargs):
@@ -103,7 +386,7 @@ class Search:
     
     def showList(self, *args): 
         self.toplevel = Toplevel(self.root) 
-        self.toplevel.attributes("-type", "splash")
+        self.toplevel.wm_overrideredirect()
         x = self.entry.winfo_rootx() 
         y = self.entry.winfo_rooty() + self.entry.winfo_height()
         self.toplevel.wm_geometry(f"+{x}+{y}")
@@ -173,232 +456,3 @@ class Search:
     
     def __getattr__(self, name): 
         return lambda *args, **kwargs: getattr(Entry, name)(self.entry, *args, **kwargs)
-
-class Field:
-    def __init__(self, id, code_string, type, params_dict, root, updateMethod):
-        self.id = id
-        self.code_string = code_string
-        self.type = type
-        self.params_dict = params_dict
-        self.updateMethod = lambda: updateMethod(params_dict["name"])
-        self.values = []
-        self.text_values = []
-        self.frame = Frame(root)
-    
-    def getShift(self):
-        if "shift" in self.params_dict:
-            return self.params_dict["shift"]
-        else:
-            return 0
-    
-    def getName(self):
-        return self.params_dict["name"]
-    
-    def getID(self):
-        return self.id
-    
-    def getType(self):
-        return self.type
-    
-    def getText(self, blank=False, shift=0):
-        raise NotImplementedError("Extend .getText()")
-    
-    def set(self):
-        raise NotImplementedError("Extend .set()")
-    
-    def getContent(self):
-        if "content" in self.params_dict:
-            if os.path.isfile(os.path.join(list_path, self.params_dict["content"])):
-                f = open(os.path.join(list_path, self.params_dict["content"]))
-                lst_options = f.read()
-                f.close()
-            else:
-                lst_options = self.params_dict["content"]
-            return lst_options
-    
-    def __getattr__(self, name): 
-        return lambda *args, **kwargs: getattr(Frame, name)(self.frame, *args, **kwargs)
-
-class Textfield(Field):
-    def set(self):
-        Label(self.frame, text=self.getName().title() + ":", font=label_font).grid(row=0, column=0, padx=3)
-        self.values.append(StringVar())
-        self.values[0].set(self.params_dict["default"] if "default" in self.params_dict else "")
-        self.values[0].trace_add("write", lambda a, b, c: self.updateMethod())
-        Entry(self.frame, width=15, textvariable=self.values[0]).grid(row=0, column=1, padx=3)
-        self.frame.pack(pady=5)
-    
-    def getText(self, blank=False):
-        if blank:
-            return self.values[0].get()
-        else:
-            return string if (string := self.values[0].get()) else START + self.getName() + CLOSE
-
-class Datefield(Field):
-    def set(self):
-        Label(self.frame, text=self.getName().title() + ":", font=label_font).grid(row=0, column=0, padx=3)
-        self.values.append(StringVar())
-        self.values[0].set(self.params_dict["default"] if "default" in self.params_dict else "")
-        self.values[0].trace_add("write", lambda a, b, c: self.updateMethod())
-        Entry(self.frame, width=5, textvariable=self.values[0]).grid(row=0, column=1, padx=3)
-        Label(self.frame, text="MM/DD/YY", font=desc_font).grid(row=0, column=2, padx=3)
-        self.frame.pack(pady=5)
-    
-    def getText(self, blank=False):
-        if len(string := self.values[0].get()) > 6 and string.count("/") == 2 and len(string.split("/")[2]) == 2:
-            date_list = string.split("/")
-            return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(DATE_FORMAT)
-        elif blank:
-            return ""
-        else:
-            return START + self.getName() + CLOSE
-
-class Checkfield(Field):
-    def set(self):
-        Label(self.frame, text=self.getName().title() + ":", font=label_font).grid(row=0, column=0)
-        lst_options = self.getContent()
-        self.text_values = lst_options.split("\n")
-        for num, option in enumerate(self.text_values):
-            self.values.append(IntVar())
-            Checkbutton(self.frame, text=option, variable=self.values[num],
-                        command=self.updateMethod).grid(row=num+1, column=0)
-        self.frame.pack(pady=5)
-
-    def getText(self, blank=False):
-        if any(item.get() for item in self.values):
-            return "\n".join([item for num, item in enumerate(self.text_values) if self.values[num].get()])
-        elif blank:
-            return ""
-        else:
-            return START + self.getName() + CLOSE
-
-class Radiofield(Field):
-    def set(self):
-        Label(self.frame, text=self.getName().title() + ":", font=label_font).grid(row=0, column=0)
-        lst_options = self.getContent()
-        self.text_values = lst_options.split("\n")
-        self.values.append(IntVar())
-        self.values[0].set(-1)
-        for num, option in enumerate(self.text_values):
-            Radiobutton(self.frame, text=option, variable=self.values[0], value=num, 
-                        command=self.updateMethod).grid(row=num+1, column=0)
-
-        self.frame.pack(pady=5)
-
-    def getText(self, blank=False):
-        if (value := self.values[0].get()) > -1:
-            return self.text_values[value]
-        elif blank:
-            return ""
-        else:
-            return START + self.getName() + CLOSE
-
-class Dropfield(Field):
-    def set(self):
-        Label(self.frame, text=self.getName().title() + ":", font=label_font).grid(row=0, column=0, padx=3)
-        lst_options = self.getContent()
-        self.text_values = lst_options.split("\n")
-        self.values.append(StringVar())
-        self.values[0].trace_add("write", lambda a, b, c: self.updateMethod())
-        Search(self.frame, lst=self.text_values).grid(row=0, column=1, padx=3)
-
-        self.frame.pack(pady=5)
-
-    def getText(self, blank=False):
-        return string if (string := self.values[0].get()) else ("" if blank else START + self.getName() + CLOSE)
-
-class Drop2field(Field):
-    def set(self):
-        Label(self.frame, text=self.getName().title() + ":", font=label_font).grid(row=0, column=0, padx=3)
-        self.text_values = self.processText()
-        self.values.append(Search(self.frame, list(self.text_values)))
-        self.values[0].stringvar.trace_add("write", self.updateSearchList)
-        self.values.append(Search(self.frame, ["Select list on the right"]))
-        self.values[1].stringvar.trace_add("write", self.updateAll)
-        self.values.append(Label(self.frame, text="", font=desc_font))
-        for num, widget in enumerate(self.values):
-            widget.grid(row=0, column=1+num, padx=3)
-        self.frame.pack(pady=5)
-    
-    def updateSearchList(self):
-        entry1 = self.values[0].get()
-        if entry1 in self.text_values:
-            self.values[1].set("")
-            self.values[1].lst = list(self.text_values[entry1])
-            self.values[1].updateList()
-    
-    def updateAll(self):
-        entry1, entry2 = self.values[0].get(), self.values[1].get()
-        if entry1 in self.text_values and entry2 in self.text_values[entry1]:
-            self.values[2].config(text=self.text_values[entry1][entry2])
-            self.updateMethod()
-
-    def getText(self, blank=False):
-        entry = "".join([item.get() for item in self.values[:2]])
-        if entry:
-            return entry
-        elif blank:
-            return ""
-        else:
-            return START + self.getName() + CLOSE
-    
-    def processText(self):
-        content_dict = {}
-        for lst in self.getContent().replace("\n\t","\t").split("\n"):
-            content_lst = lst.split("\t")
-            content_dict[content_lst[0]] = dict(entry.split(":") for entry in content_lst[1:])
-        return content_dict
-
-class Repeatfield(Field):
-    def __init__(self, id, code_string, type, params_dict, root, updateMethod, repeatMethod):
-        super().__init__(id, code_string, type, params_dict, root, updateMethod)
-        self.repeatMethod = repeatMethod
-        self.disabled_color = "#aaaaaa"
-    
-    def set(self):
-        if "shift" in self.params_dict:
-            self.values.append(IntVar())
-            self.values.append(StringVar())
-            self.values[1].trace_add("write", lambda a, b, c: self.updateMethod())
-            
-            Checkbutton(self.frame, text="Enable", variable=self.values[0], 
-                        command=self.toggleActivity).grid(row=0, column=0, columnspan=3)
-            self.text_values.append(Label(self.frame, text=self.getName().title() + ", shifted by " + \
-                self.params_dict["shift"] + ":", font=label_font, fg=self.disabled_color))
-            self.text_values[0].grid(row=1, column=0, padx=3)
-            self.text_values.append(Entry(self.frame, width=5, textvariable=self.values[1], state=DISABLED))
-            self.text_values[1].grid(row=1, column=1, padx=3)
-            self.text_values.append(Label(self.frame, text="MM/DD/YY", font=desc_font, fg=self.disabled_color))
-            self.text_values[2].grid(row=1, column=2, padx=3)
-            self.frame.pack(pady=5)
-        else:
-            return
-    
-    def toggleActivity(self):
-        if self.values[0].get():
-            self.text_values[0].config(fg="#000")
-            self.text_values[1].config(state=NORMAL)
-            self.text_values[2].config(fg="#000")
-        else:
-            self.text_values[0].config(fg=self.disabled_color)
-            self.text_values[1].config(state=DISABLED)
-            self.text_values[2].config(fg=self.disabled_color)
-    
-    def getText(self):
-        if "shift" in self.params_dict:
-            if len(string := self.values[1].get()) > 6 and string.count("/") == 2 and len(string.split("/")[2]) == 2:
-                date_list = string.split("/")
-                date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + \
-                                timedelta(days=int(self.getShift()))
-                return date.strftime(DATE_FORMAT)
-            else:
-                return START + self.getName() + ", shifted " + self.getShift() + CLOSE
-        else:
-            return string if (string := self.repeatMethod(self.getName(), self.getShift())) else START + self.getName() + CLOSE
-    
-    def setText(self, text):
-        if len(text) > 6 and text.count("/") == 2 and len(text.split("/")[2]) == 2:
-            date_list = text.split("/")
-            date = datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])) + timedelta(days=self.getShift())
-            self.values[1].set(date.strftime("%m/%I/%y"))
-
