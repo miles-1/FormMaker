@@ -1,94 +1,114 @@
-C/S SOFT GROUT AM
+[split. name="C/S TILE SOFT GROUT AM"]
 
-SCH:  DATE AM AND DATE AS NEEDED
+SCH:  [date.name=gtu] AM AND [repeat.name=gtu,shift=1] AS NEEDED
 
-**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
+~**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
 
- NAME -- XXXX BUILDER REP
- NAME -- XXXX HOMEOWNER
- CS TEAM1 -- 480-576-7134 IL CSR
- CS TEAM2 -- 480-576-7135 IL CSR
- DARYL KRENN -- 602-568-6823 C/S FIELD MANAGER
- JEFF VOGT -- 480-356-2244 C/S FIELD MANAGER
- JOSUE GUAJARDO -- 602-679-1425 C/S FIELD MANAGER
- MIKE WILMOT -- 303-500-2171 C/S FIELD MANAGER
- ROB HOLDER -- 480-415-6842 C/S FIELD MANAGER
- RUEBEN WHEELIS -- 602-653-0190 C/S FIELD MANAGER
- SANTIAGO CALVO – 480-690-0962 C/S FIELD MANAGER
- BRUNO CAFARELLI -- 602-722-5408 IL AREA MANAGER
- DAVID WELLS -- 480-216-8696 IL AREA MANAGER
- DON SIFERD -- 480-322-5119 IL AREA MANAGER
- GREGG OVIST -- 480-261-1762 IL AREA MANAGER
- JEFF ANDERSON -- 602-725-4093 IL AREA MANAGER
- JEFF COOK -- 602-689-8933 IL AREA MANAGER
- DOUG JOHNSTON -- 480-476-6806 IL FIELD MANAGER
- DAVID KLEM -- 602-653-0085 IL FIELD SUPER
- JASON FITCH -- 480-645-2499 IL FIELD MANAGER
- STEVE WELLS -- 602-526-4983 IL FIELD MANAGER
+ [text. name="Builder Rep Name"] -- [text. name="Builder Rep Phone"] BUILDER REP
+ [text. name="Homeowner Name"] -- [text. name="Homeowner Phone"] HOMEOWNER
+ [radio. name="IL CSR", content=ilcsrlist.txt]
+ [radio. name="Field Manager", content=fieldmanagerlist.txt]
 
-**BCV – SOFT GROUT**
+**BCV – SOFT GROUT**~
 
---NEED TO DO EXTENSIVE SOFT GROUT REPAIRS THROUGHOUT, FILL IN ALL PINHOLES, VOIDS, LOW SPOTS, STONE DOWN ROUGH HIGH SPOTS, TO PREPARE FOR HARDENING AND STAINING TREATMENTS DUE TO SOFT GROUT.
+--[text. name=task, default="NEED TO DO EXTENSIVE SOFT GROUT REPAIRS THROUGHOUT, FILL IN ALL PINHOLES, VOIDS, LOW SPOTS, STONE DOWN ROUGH HIGH SPOTS, TO PREPARE FOR HARDENING AND STAINING TREATMENTS DUE TO SOFT GROUT."]
 
-FLOOR GROUT - CUSTOM(PRISM) # /MAPEI(ULTRA COLOR)/C-CURE
-LOCATION
+FLOOR GROUT - [drop2.name="floor grout color 1",content=groutlist.txt]
+[text. name="floor grout location 1"]
 
-FLOOR GROUT - CUSTOM(PRISM) # /MAPEI(ULTRA COLOR)/C-CURE
-LOCATION
+FLOOR GROUT - [drop2.name="floor grout color 2",content=groutlist.txt]
+[text. name="floor grout location 1"]
 
-MUD GROUT - CUSTOM(PRISM) # /MAPEI(ULTRA COLOR)/C-CURE
-LOCATION
+SPL GROUT - [drop2.name="splash grout color",content=groutlist.txt]
+[text. name="splash grout location 1"]
 
-MUD GROUT - CUSTOM(PRISM) # /MAPEI(ULTRA COLOR)/C-CURE
-LOCATION
+MUD GROUT - [drop2.name="mud grout color 1",content=groutlist.txt]
+[text. name="mud grout location 1"]
 
-TILE - (SF)
+MUD GROUT - [drop2.name="mud grout color 2",content=groutlist.txt]
+[text. name="mud grout location 1"]
+
+TILE - ([text.name="Square Footage"] SF)  [text. name="Tile Size 1"] [text. name="Tile Size 2"]
 
 HAVE WORK ORDER SIGNED
-ORIGINAL INSTALLER - 
-ORIGINAL INSTALL DATE - 
+ORIGINAL INSTALLER - [text. name="Installer Name"]
+ORIGINAL INSTALL DATE - [date. name="Install Date"]
 
+[split. name="C/S MOVERS 8AM"]
+SCH:  [repeat. name=gtu] 8AM AND [repeat. name=gtu, shift=1] AS NEEDED
 
-C/S MOVERS 8AM
-SCH:  DATE 8AM AND DATE AS NEEDED
-**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
+~**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
 
+ [repeat. name="Builder Rep Name"] -- [repeat. name="Builder Rep Phone"] BUILDER REP
+ [repeat. name="Homeowner Name"] -- [repeat. name="Homeowner Phone"] HOMEOWNER
+ [repeat. name="IL CSR"]
+ [repeat. name="Field Manager"]
 
-**BCV – SOFT GROUT**
+**BCV – SOFT GROUT**~
 
 --NEED TO REMOVE AND REPLACE ALL FURNITURE AND APPLIANCES ON TILED AREAS DUE TO EXTENSIVE SOFT GROUT REPAIRS THROUGHOUT.  COORDINATE REPLACEMENT OF FURNITURE WITH BUILDER REP/HOMEOWNER.
 
-TILE - (SF)
+TILE - ([repeat.name="Square Footage"] SF)  [repeat. name="Tile Size 1"] [repeat. name="Tile Size 2"]
 
 HAVE WORK ORDER SIGNED
-ORIGINAL INSTALLER - 
-ORIGINAL INSTALL DATE - 
+ORIGINAL INSTALLER - [repeat. name="Installer Name"]
+ORIGINAL INSTALL DATE - [repeat. name="Install Date"]
 
+[split. name="C/S NSC AM"]
 
-C/S NSC AM
+SCH:  [repeat. name=gtu, shift=7] AM AND [repeat. name=gtu, shift=8] AM  (HARDEN DAY ONE, STAIN DAY TWO)
 
-SCH:  [] AM AND DATE AM  (HARDEN DAY ONE, STAIN DAY TWO)
-**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
+~**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
 
+ [repeat. name="Builder Rep Name"] -- [repeat. name="Builder Rep Phone"] BUILDER REP
+ [repeat. name="Homeowner Name"] -- [repeat. name="Homeowner Phone"] HOMEOWNER
+ [repeat. name="IL CSR"]
+ [repeat. name="Field Manager"]
 
-**BCV – SOFT GROUT**
--- DAY ONE - NEED TO DO GROUT HARDENING TREATMENT THROUGHOUT. EXTENSIVE TOUCH UP COMPLETED 5/20.
+**BCV – SOFT GROUT**~
+
+-- DAY ONE - NEED TO DO GROUT HARDENING TREATMENT THROUGHOUT. EXTENSIVE TOUCH UP COMPLETED [repeat. name=gtu].
 
 -- DAY TWO - NEED TO STAIN GROUT THROUGHOUT 
 
-GROUT
-C/S MOVERS 8AM
-SCH:  DATE 8AM AND DATE 8AM (WORK WITH NSC FOR MOVING NEEDS)
-**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
+FLOOR GROUT - [repeat.name="floor grout color 1"]
+[repeat. name="floor grout location 1"]
 
+FLOOR GROUT - [repeat.name="floor grout color 2"]
+[repeat. name="floor grout location 1"]
 
-**BCV – SOFT GROUT**
+SPL GROUT - [repeat.name="splash grout color"]
+[repeat. name="splash grout location 1"]
 
--– NEED TO MOVE FURNITURE AND APPLIANCES FROM ALL TILED AREAS TO ALLOW FOR GROUT HARDENING TREATMENT ON DATE AND STAINING ON DATE DUE TO SOFT GROUT
+MUD GROUT - [repeat.name="mud grout color 1"]
+[repeat. name="mud grout location 1"]
 
-TILE - (SF)
+MUD GROUT - [repeat.name="mud grout color 2"]
+[repeat. name="mud grout location 1"]
+
+TILE - ([repeat.name="Square Footage"] SF)  [repeat. name="Tile Size 1"] [repeat. name="Tile Size 2"]
 
 HAVE WORK ORDER SIGNED
-ORIGINAL INSTALLER - 
-ORIGINAL INSTALL DATE - 
+ORIGINAL INSTALLER - [repeat. name="Installer Name"]
+ORIGINAL INSTALL DATE - [repeat. name="Install Date"]
+
+[split. name="C/S MOVERS 8AM"]
+SCH:  DATE [repeat.name=gtu, shift=7] AND [repeat. name=gtu, shift=8] 8AM (WORK WITH NSC FOR MOVING NEEDS)
+
+~**PLEASE CONTACT BUILDER/HOMEOWNER, 30 MINS PRIOR TO ARRIVAL AND/OR FOR ANY ISSUES**
+
+ [repeat. name="Builder Rep Name"] -- [repeat. name="Builder Rep Phone"] BUILDER REP
+ [repeat. name="Homeowner Name"] -- [repeat. name="Homeowner Phone"] HOMEOWNER
+ [repeat. name="IL CSR"]
+ [repeat. name="Field Manager"]
+
+**BCV – SOFT GROUT**~
+
+-– NEED TO MOVE FURNITURE AND APPLIANCES FROM ALL TILED AREAS TO ALLOW FOR GROUT HARDENING TREATMENT ON [repeat.name=gtu, shift=7] AND STAINING ON [repeat.name=gtu, shift=8] DUE TO SOFT GROUT
+
+TILE - ([repeat.name="Square Footage"] SF)  [repeat. name="Tile Size 1"] [repeat. name="Tile Size 2"]
+
+HAVE WORK ORDER SIGNED
+ORIGINAL INSTALLER - [repeat. name="Installer Name"]
+ORIGINAL INSTALL DATE - [repeat. name="Install Date"]
 

@@ -2,7 +2,7 @@ from tkinter import Frame, Radiobutton, Label, IntVar, Button
 from tkinter.ttk import Separator
 from tkinter import VERTICAL, END, WORD, HORIZONTAL
 from Order import Order
-from Field import TextHTML
+from CustomClasses import TextHTML, ScrollableFrame
 from CONFIG import template_dir
 import os
 # import klembord
@@ -12,9 +12,8 @@ class Window:
     def __init__(self, root):
         self.root = root
         self.root.title("FormMaker")
-        self.template_names = [name for name in os.listdir(template_dir) if name[-4:] == ".txt"]
+        self.template_names = sorted([name for name in os.listdir(template_dir) if name[-4:] == ".txt"])
         self.templates = []
-        self.field_obj = []
         self.current_order = None
         
         for name in self.template_names:
@@ -23,9 +22,9 @@ class Window:
             f.close()
         
         l0 = Label(self.root, text="Order Generator", font=('Arial', 18, 'bold'))
-        s0 = Separator(self.root, orient=VERTICAL)
         f0 = Frame(self.root)
-        self.f1 = Frame(self.root, width=300)
+        s0 = Separator(self.root, orient=VERTICAL)
+        self.f1 = ScrollableFrame(self.root, width=300, height=1500)
         f2 = Frame(self.root)
 
         Label(self.f1, text="Select a template above to enter fields here.").pack()
@@ -51,12 +50,16 @@ class Window:
     
     def updateOrder(self):
         self.f1.destroy()
-        self.f1 = Frame(self.root, width=300)
+        self.f1 = ScrollableFrame(self.root, width=300)
         self.current_order = Order(self.template_names[(current := self.radio_var.get())], 
                                    self.templates[current], self.f1, self.updateText)
-        self.field_obj = self.current_order.getFieldObjects()
-        for field in self.field_obj:
+        repeat_dict = self.current_order.getRepeatDict()
+        for field in self.current_order.getFieldObjects():
             field.set()
+            if (name := field.getName()) in repeat_dict:
+                for repeat_obj in repeat_dict[name]:
+                    if repeat_obj.getShift():
+                        repeat_obj.set()
             Separator(self.f1, orient=HORIZONTAL).pack(fill="x")
         self.f1.grid(row=2, column=0, padx=10)
         self.updateText()

@@ -20,14 +20,14 @@ field_params = {
 
 misc_tags = {
              "format": ["font", "size", "style"],
-             "endformat": []
+             "endformat": [],
+             "split": ["name"]
             }
 
 # These can be changed for template syntax
 MAX_NUM_SPLITS = 5
 START, CLOSE = "[", "]"
 TITLE_END, PARAM_SEP, PARAM_SET = ".", ",", "="
-SPLIT = START + "split" + CLOSE
 NORM_FONT = ('Courier New', 9, 'normal')
 BOLD_FONT = ('Calibri', 12, 'bold')
 BOLD_SPLIT = "~"
