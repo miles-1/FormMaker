@@ -191,7 +191,7 @@ class Drop2field(Field):
         
         self.values[0].grid(row=1, column=0)
         self.values[1].grid(row=1, column=1, padx=3, pady=3)
-        self.values[2].grid(row=2, column=1, columnspan=2, pady=3)
+        self.values[2].grid(row=2, column=0, columnspan=2, pady=3)
         self.pack()
     
     def updateSearchList(self, *args):
@@ -218,8 +218,8 @@ class Drop2field(Field):
     
     def processText(self):
         content_dict = {}
-        for lst in self.getContent().replace("\n\t","\t").split("\n"):
-            content_lst = lst.split("\t")
+        for lst in self.getContent().replace("\n    ","    ").split("\n"):
+            content_lst = lst.split("    ")
             content_dict[content_lst[0]] = dict(entry.split(":") for entry in content_lst[1:])
         return content_dict
 

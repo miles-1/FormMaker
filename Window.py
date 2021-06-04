@@ -90,5 +90,5 @@ class Window:
             self.textbox.setHTML(self.current_order.getHTML())
     
     def copyText(self, section):
-        klembord.set_with_rich_text(*self.current_order.getHTML(section, return_html=True))
+        klembord.set_with_rich_text(*self.current_order.getText(section, return_html=True))
         # TODO: verify it works w/o klembord.init()
