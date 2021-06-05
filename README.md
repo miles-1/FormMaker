@@ -1,5 +1,2 @@
-Problems:
- - make sure drop/drop2 works
- - update docs
- - make sure scroll Text works on Windows
- - scroll by mousewheel
+pyinstaller command for Windows:
+`pyinstaller main.py -F -n "FormMaker" --add-data "help.png;." -w --icon=icon.ico`

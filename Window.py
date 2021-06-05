@@ -4,9 +4,8 @@ from tkinter import VERTICAL, END, WORD, HORIZONTAL
 from Order import Order
 from CustomClasses import HelpBox, TextHTML, ScrollableFrame
 from CONFIG import template_dir, img_dir, manual, column_width, column_height
-import os
+import os, sys
 import klembord
-
 
 class Window:
     def __init__(self, root):

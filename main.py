@@ -1,7 +1,7 @@
 from Window import Window
 from tkinter import Tk, messagebox
 from CustomClasses import TkExceptionHandler
-import tkinter
+import tkinter, os
 
 if __name__ == "__main__":
     tkinter.CallWrapper = TkExceptionHandler
@@ -14,6 +14,5 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
         import sys
-        print(type(e).__name__ + ": " + str(e) + "\n"*3 + traceback.format_exc()) # TODO: Remove
         messagebox.showerror(message=type(e).__name__ + ": " + str(e) + "\n"*3 + traceback.format_exc())
         sys.exit()

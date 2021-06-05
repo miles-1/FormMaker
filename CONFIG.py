@@ -1,9 +1,15 @@
 import os, sys
 
 main_path = os.path.dirname(sys.argv[0])
-list_path = os.path.join(main_path, "lists/")
-template_dir = os.path.join(main_path, "templates/")
-img_dir = os.path.join(main_path, "help.png")
+list_path = os.path.join(main_path, "lists")
+template_dir = os.path.join(main_path, "templates")
+
+if getattr(sys, 'frozen', False):
+    application_path = sys._MEIPASS
+else:
+    application_path = os.path.dirname(os.path.abspath(__file__))
+
+img_dir = os.path.join(application_path, "help.png")
 
 # Can be changed for program functionality
 label_font = ('Arial', 12, 'bold')
