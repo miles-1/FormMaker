@@ -17,7 +17,7 @@ column_height = 500 # pixels
 # These are hardcoded in other regions
 field_params = {
                 "text": ["name", "default"],
-                "date": ["name"], 
+                "date": ["name", "type"], 
                 "check": ["name","content"], 
                 "radio": ["name","content"], 
                 "drop": ["name","content"], 
@@ -71,10 +71,12 @@ manual = "\tThis program seeks to allow the quick creation of form-style documen
     "\tTEXT ENTRY. To prompt the input of text in a given area of the document, use the 'text' tag. " + \
     "For example: [text. name=\"Customer name\"] will create an entry field in the program for " + \
     "you to type the customer name. If desired, you may also include a default text value that is " + \
-    "put into the entry field by including default=\"\" in the tag.\n" + \
+    "put into the entry field by including default=\"\" in the tag. If the value is \"^\" or greater" + \
+    f"than {entry_width} characters, a bigger text entry box will appear.\n" + \
     "\tDATE ENTRY. To prompt the input of a date in a given area of the document, use the 'date' tag. " + \
     "For example: [date. name=\"Appointment date\"] will create an entry field in the program for " + \
-    "you to type the appointment date.\n" + \
+    "you to type the appointment date. Setting type=\"\" allows users to format dates using info " + \
+    "described at strftime.org.\n" + \
     "\tCHECKBOX SELECTION. To prompt the selection of one or more options from a list to include in " + \
     "the final document, use the 'check' tag. For example: [check. name=\"Materials\"," + \
     "content=materialslist.txt] will read the contents of materialslist.txt from the 'lists' folder " + \
@@ -92,5 +94,5 @@ manual = "\tThis program seeks to allow the quick creation of form-style documen
     "\n\tREPEAT PREVIOUS ENTRY. This will repeat the text generated from a previous tag as specified " + \
     "by name. Note that this means that you will copy exactly the name assigned to the tag desired " + \
     "to be copied.\n" + \
-    "\n\tSPLIT FORM. The 'split' tag takes no parameters and allows for separate copying of sections " + \
+    "\tSPLIT FORM. The 'split' tag takes no parameters and allows for separate copying of sections " + \
     "within the document as a whole."

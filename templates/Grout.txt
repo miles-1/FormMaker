@@ -14,10 +14,10 @@ SCH:  [date.name=gtu] AM AND [repeat.name=gtu,shift=1] AS NEEDED
 --[text. name=task, default="NEED TO DO EXTENSIVE SOFT GROUT REPAIRS THROUGHOUT, FILL IN ALL PINHOLES, VOIDS, LOW SPOTS, STONE DOWN ROUGH HIGH SPOTS, TO PREPARE FOR HARDENING AND STAINING TREATMENTS DUE TO SOFT GROUT."]
 
 FLOOR GROUT - [drop2.name="floor grout color 1",content=groutlist.txt]
-[text. name="floor grout location 1"]
+[text. name="floor grout location 1", default="^"]
 
 FLOOR GROUT - [drop2.name="floor grout color 2",content=groutlist.txt]
-[text. name="floor grout location 2"]
+[text. name="floor grout location 2", default="^"]
 
 SPL GROUT - [drop2.name="splash grout color",content=groutlist.txt]
 [text. name="splash grout location 1"]
@@ -32,7 +32,7 @@ TILE - ([text.name="Square Footage"] SF)  [text. name="Tile Size 1"] [text. name
 
 HAVE WORK ORDER SIGNED
 ORIGINAL INSTALLER - [text. name="Installer Name"]
-ORIGINAL INSTALL DATE - [date. name="Install Date"]
+ORIGINAL INSTALL DATE - [date. name="Install Date", type="%m/%d/%y"]
 
 [split. name="C/S MOVERS 8AM"]
 SCH:  [repeat. name=gtu] 8AM AND [repeat. name=gtu, shift=1] AS NEEDED

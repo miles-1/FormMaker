@@ -84,8 +84,7 @@ class Textfield(Field):
         else:
             if self.default_text == "^":
                 self.default_text = ""
-            self.values = Text(self.frame, wrap=WORD, width=entry_width*2, 
-                               height=min(4,len(self.default_text)//entry_width))
+            self.values = Text(self.frame, wrap=WORD, width=entry_width*2, height=4)
             self.values.insert(1.0, self.default_text)
             self.values.bind("<Any-KeyPress>", lambda *args: self.updateMethod())
             self.values.grid(row=1, column=0, sticky="w")
@@ -103,9 +102,9 @@ class Textfield(Field):
 
 class Datefield(Field):
     def set(self):
+        self.text_values = DATE_FORMAT if "type" not in self.params_dict else self.params_dict["type"]
         self.makeLabel(padx=3)
         self.values = StringVar()
-        self.values.set(self.params_dict["default"] if "default" in self.params_dict else "")
         self.values.trace_add("write", self.update)
         Entry(self.frame, width=entry_width, textvariable=self.values).grid(row=0, column=1, padx=3)
         self.makeLabel(text="MM/DD/YY", font=desc_font, column=2, padx=3)
@@ -119,7 +118,7 @@ class Datefield(Field):
         if dateValid(string := self.values.get()):
             date_list = string.split("/")
             try:
-                return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(DATE_FORMAT)
+                return datetime(int("20" + date_list[2]), int(date_list[0]), int(date_list[1])).strftime(self.text_values)
             except ValueError:
                 pass
         if blank:
@@ -206,11 +205,16 @@ class Drop2field(Field):
         if entry1 in self.text_values and entry2 in self.text_values[entry1]:
             self.values[2].config(text=self.text_values[entry1][entry2])
             self.updateMethod()
+        elif entry1 and entry2:
+            self.updateMethod()
 
     def getText(self, blank=False):
-        entry = "".join([item.get() for item in self.values[:2]])
-        if entry:
-            return entry
+        entries = [item.get() for item in self.values[:2]]
+        if all(entries):
+            if entries[0] in self.text_values and entries[1] in self.text_values[entries[0]]:
+                return f"{entries[0]} #{entries[1]} - {self.text_values[entries[0]][entries[1]]}"
+            else:
+                return f"{entries[0]} #{entries[1]}"
         elif blank:
             return ""
         else:
@@ -218,8 +222,8 @@ class Drop2field(Field):
     
     def processText(self):
         content_dict = {}
-        for lst in self.getContent().replace("\n    ","    ").split("\n"):
-            content_lst = lst.split("    ")
+        for lst in self.getContent().replace("\n"+" "*4," "*4).split("\n"):
+            content_lst = lst.split(" "*4)
             content_dict[content_lst[0]] = dict(entry.split(":") for entry in content_lst[1:])
         return content_dict
 

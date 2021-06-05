@@ -78,7 +78,7 @@ class Window:
         self.button_frame = Frame(self.f2)
         for num, title in enumerate(self.current_order.getCopyButtonInfo()):
                 Button(self.button_frame, text="Copy "+title, 
-                       command=lambda:self.copyText(num)).grid(row=num, column=0)
+                       command=lambda num=num:self.copyText(num)).grid(row=num, column=0)
         self.textbox.config(height=int(column_height/12)-num*2)
         self.button_frame.grid(row=1, column=0)
     
