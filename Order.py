@@ -58,7 +58,7 @@ def splitText(title, text):
 
 def elongateBoldShorthand(text):
     '''Replace BOLD_SPLIT tags with 'format' tags'''
-    format_tags = [f"{START}format{TITLE_END}font{PARAM_SET}\"{BOLD_FONT[0]}\"{PARAM_SEP}" + \
+    format_tags = [f"{START}format{TITLE_END}font{PARAM_SET}{BOLD_FONT[0]}{PARAM_SEP}" + \
             f"size{PARAM_SET}{BOLD_FONT[1]}{PARAM_SEP}style{PARAM_SET}{BOLD_FONT[2]}{CLOSE}", 
             f"{START}endformat{CLOSE}"]
     section = ''.join([(format_tags[0] + entry + format_tags[1] if num % 2 else entry) \
