@@ -2,8 +2,6 @@ from tkinter.ttk import Scrollbar
 from tkinter import Frame, Entry, Label, StringVar, IntVar, Checkbutton, Radiobutton, Text, Toplevel, Canvas
 from tkinter import WORD, END, NORMAL, DISABLED, VERTICAL, LEFT
 from datetime import datetime, timedelta
-from tkinter.constants import NO
-from typing import Collection
 from CONFIG import list_path, label_font, desc_font, title_font, entry_width, \
     NORM_FONT, DATE_FORMAT, START, CLOSE
 import os
