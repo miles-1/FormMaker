@@ -339,28 +339,27 @@ class ScrollableFrame(Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
     
     def on_mousewheel(self, event):
-        if type(event.widget).__name__ not in ['TextHTML', 'Text']:
+        if type(event.widget).__name__ not in ['TextFNTD', 'Text']:
             self.canvas.yview_scroll(-1*int(event.delta/120), "units")
     
     def grid(self, **kwargs):
         self.mainframe.grid(**kwargs)
 
-class TextHTML(Text):
+class TextFNTD(Text):
     def __init__(self, root, **kwargs):
         super().__init__(root, **kwargs)
         self.font_lst = []
     
-    def setHTML(self, html):
+    def setFNTD(self, html):
         self.delete(1.0, END)
-        for frag in html.split("<span style=\""):
+        for frag in html.split("<font "):
             if frag:
-                style, content = frag.split("\">", 1)
-                font = tuple([pair.split(":")[1] for pair in style.split(";")])
+                style, content = frag.split(">", 1)
+                font = tuple(style.split(","))
                 if font not in self.font_lst:
                     self.tag_configure(len(self.font_lst), font=font)
                     self.font_lst.append(font)
-                self.insert(END, content.replace("</span>","").replace("&nbsp", " ").replace("<br />", "\n") \
-                    .replace("&lt;", "<").replace("&gt;", ">"), self.font_lst.index(font))
+                self.insert(END, content, self.font_lst.index(font))
 
 class Font:
     def __init__(self, font=NORM_FONT[0], size=NORM_FONT[1], style=NORM_FONT[2]):
@@ -369,16 +368,15 @@ class Font:
     def getFont(self):
         return self.font
     
-    def getHTML(self, content):
+    def getFNTD(self, content):
         content_lst = [entry2 for entry1 in content.split(START) for entry2 in entry1.split(CLOSE)]
         for num, entry in enumerate(content_lst):
             if not num % 2:
-                content_lst[num] = entry.replace(" ", "&nbsp").replace("<", "&lt;") \
-                                        .replace(">", "&gt;").replace("\n", "<br />")
+                content_lst[num] = entry
             else:
                 content_lst[num] = START + entry + CLOSE
-        return f'<span style="font-family:{self.font[0]};font-size:{self.font[1]};font-weight:{self.font[2]}">' + \
-            ''.join(content_lst) + "</span>"
+        return f'<font {self.font[0]},{self.font[1]},{self.font[2]}>' + \
+            ''.join(content_lst)
 
 class Search: 
     '''A widget with features of Entry and Combobox that allows for a dropdown list 

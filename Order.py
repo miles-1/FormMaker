@@ -83,8 +83,8 @@ def splitOnFormatTags(title, text):
                 temp_lst.append(entry)
     return temp_lst
 
-def makeFormatTagsHTML(title, lst):
-    '''Replace 'format' tags with HTML'''
+def makeFormatTagsFNTD(title, lst):
+    '''Replace 'format' tags with FNTD'''
     text = ""
     for entry in lst:
         if f"{START}format." == entry[:8]:
@@ -97,19 +97,19 @@ def makeFormatTagsHTML(title, lst):
                     raise SyntaxError("Unrecognized 'format' parameter in " +
                                     title + ": " + temp_sublist[0])
                 params_dict[temp_sublist[0]] = temp_sublist[1]
-            text += Font(**params_dict).getHTML(entry)
+            text += Font(**params_dict).getFNTD(entry)
         elif entry:
-            text += Font().getHTML(entry)
+            text += Font().getFNTD(entry)
     return text
 
 def formatText(title, text):
-    '''Replace 'format' tags with HTML and separate text by 'split' tags'''
+    '''Replace 'format' tags with FNTD and separate text by 'split' tags'''
     edited_text = formatTemplateFields(title, text)
     text_lst = splitText(title, edited_text)
     for num, section in enumerate(entry[1] for entry in text_lst):
         section = elongateBoldShorthand(section)
         temp_lst = splitOnFormatTags(title, section)
-        text_lst[num][1] = makeFormatTagsHTML(title, temp_lst)
+        text_lst[num][1] = makeFormatTagsFNTD(title, temp_lst)
     return text_lst
 
 def catchTagErrors( title, field_pair, params_dict):
@@ -205,25 +205,41 @@ class Order:
     def getRepeatDict(self):
         return self.repeat_dict
 
-    def getText(self, section, return_html=False):
-        html = self.getHTML(section)
-        text = html.replace("<br \>", "\n").replace("&nbsp", " ")
-        text = ''.join([entry2 for entry1 in text.split("<") for entry2 in entry1.split(">")][::2])
-        text = text.replace("&lt;", "<").replace("&gt;", ">")
-        if return_html:
-            return text, html
-        else:
-            return text
+    def getText(self, section):
+        return ''.join([entry2 for entry1 in self.getFNTD(section).split("<") \
+                        for entry2 in entry1.split(">")][::2])
     
-    def getHTML(self, section=-1):
+    def getRTF(self, section):
+        rtf_begin = "{\\rtf1\\ansi{\\fonttbl"
+        main_text = ""
+        fonts = []
+        text = [entry2 for entry1 in self.getFNTD(section).split("<font ")[1:] for entry2 in entry1.split(">")]
+        for font, content in zip(text[::2], text[1::2]):
+            font_feat = font.split(",")
+            if font_feat[0] not in fonts:
+                rtf_begin += f"\\f{len(fonts)} {font_feat[0]};"
+                fonts.append(font_feat[0])
+            if "bold" == font_feat[2]:
+                type_font = "\\b"
+            elif "italic" == font_feat[2]:
+                type_font = "\\i"
+            else:
+                type_font = ""
+            type_font += f"\\fs{int(float(font_feat[1])*2)}"
+            formatted_content = content.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}").replace("\n","\\line ")
+            main_text += "{\\f" + str(fonts.index(font_feat[0])) + type_font + formatted_content + "}"
+        print(rtf_begin + "}{" + main_text + "}")
+        return rtf_begin + "}{" + main_text + "}"
+
+    def getFNTD(self, section=-1):
         html = ""
         if section == -1:
             if self.num_sections > 1:
                 for num in range(self.num_sections):
-                    html += '<span style="font-family:Arial;font-size:16;font-weight:bold"><br />' + \
-                            self.text_lst[num][0] + "</span><br />" + self.getHTML(num)
+                    html += '<font Arial,16,bold>\n' + \
+                            self.text_lst[num][0] + "\n" + self.getFNTD(num)
             elif self.num_sections == 1:
-                html += self.getHTML(0)
+                html += self.getFNTD(0)
         else:
             for frag in self.text_lst[section][1]:
                 if isinstance(frag, Field):

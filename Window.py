@@ -2,10 +2,10 @@ from tkinter import Frame, Radiobutton, Label, IntVar, Button, PhotoImage
 from tkinter.ttk import Separator
 from tkinter import VERTICAL, END, WORD, HORIZONTAL
 from Order import Order
-from CustomClasses import HelpBox, TextHTML, ScrollableFrame
+from CustomClasses import HelpBox, TextFNTD, ScrollableFrame
 from CONFIG import template_dir, img_dir, manual, column_width, column_height
 import os, sys
-import klembord
+import win32clipboard
 
 class Window:
     def __init__(self, root):
@@ -41,7 +41,7 @@ class Window:
         s0 = Separator(self.root, orient=VERTICAL)
 
         self.f2 = Frame(self.root)
-        self.textbox = TextHTML(self.f2, width=int(column_width/6), 
+        self.textbox = TextFNTD(self.f2, width=int(column_width/6), 
                                 height=int(column_height/12), bg="#eee", bd=2, wrap=WORD)
         self.updateText()
         self.button_frame = Frame(self.f2)
@@ -86,7 +86,12 @@ class Window:
             self.textbox.delete(1.0, END)
             self.textbox.insert(END, "Select a template above to see preview here.")
         else:
-            self.textbox.setHTML(self.current_order.getHTML())
+            self.textbox.setFNTD(self.current_order.getFNTD())
     
     def copyText(self, section):
-        klembord.set_with_rich_text(*self.current_order.getText(section, return_html=True))
+        CF_RTF = win32clipboard.RegisterClipboardFormat("Rich Text Format")
+        rtf = bytearray(self.current_order.getRTF(section), 'utf8')
+        win32clipboard.OpenClipboard(0)
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardData(CF_RTF, rtf)
+        win32clipboard.CloseClipboard()
